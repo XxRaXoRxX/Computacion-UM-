@@ -1,2 +1,2 @@
-# Computacion-UM-2021
-Repositorio para subir prácticos y tareas sobre Computación -UM-
+# Computacion II -UM-
+Repositorio para subir prácticos y tareas sobre Computación II en la Universidad de Mendoza.
