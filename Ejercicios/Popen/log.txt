@@ -1,0 +1,2 @@
+2022-03-27 18:06:20.535548: Comando |ls -l| ejecutado correctamente.
+sh: 1: r: not found
