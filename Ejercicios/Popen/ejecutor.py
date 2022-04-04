@@ -37,16 +37,16 @@ def UseCommandsSubprocess(command, commandArchive, logArchive):
 
     #El returncode al ser cero significa que no hubo error y guarda lo que devuelve el comando y la fecha en el log.
     if p.returncode == 0:
-        with open(commandArchive, "w+") as command_file:
-            command_file.write(str(out))
+        with open(commandArchive, "a") as command_file:
+            command_file.write(str(out) + "\n")
 
         txt = f"Fecha y Hora: {date.datetime.now()}. Comando: {command} ejecutado correctamente."
-        with open(logArchive, "w+") as error_file:
-            error_file.write(str(txt))
+        with open(logArchive, "a") as error_file:
+            error_file.write(str(txt) + "\n")
     #El returncode al ser diferente de 0 es que dio algun tipo de error, entonces hay que guardar el error en el log.
     else:
-        with open(logArchive, "w+") as error_file:
-            error_file.write(str(err))
+        with open(logArchive, "a") as error_file:
+            error_file.write(str(err) + "\n")
 
 # Generas el parser con una descripción
 parser = arg.ArgumentParser(description="Realizar un comando y almacenar comando y log dentro de archivos.")

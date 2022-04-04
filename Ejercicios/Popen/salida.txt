@@ -1,9 +1,2 @@
-total 4
--rw-rw-r-- 1 raxor raxor 1785 mar 27 18:04 ejecutor.py
--rw-rw-r-- 1 raxor raxor    0 mar 27 18:04 ErrorLogBetaTesting.txt
--rw-rw-r-- 1 raxor raxor    0 mar 27 18:04 salida.txt
-total 12
--rw-rw-r-- 1 raxor raxor 1785 mar 27 18:06 ejecutor.py
--rw-rw-r-- 1 raxor raxor    0 mar 27 18:06 ErrorLogBetaTesting.txt
--rw-rw-r-- 1 raxor raxor   85 mar 27 18:04 log.txt
--rw-rw-r-- 1 raxor raxor  184 mar 27 18:04 salida.txt
+b'total 4\n-rw-rw-r-- 1 raxor raxor 3017 abr  4 14:03 ejecutor.py\n-rw-rw-r-- 1 raxor raxor    0 abr  4 14:00 log.txt\n-rw-rw-r-- 1 raxor raxor    0 abr  4 14:00 salida.txt\n'
+b'ejecutor.py\nlog.txt\nsalida.txt\n'
