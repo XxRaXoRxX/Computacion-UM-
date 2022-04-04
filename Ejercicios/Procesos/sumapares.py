@@ -11,28 +11,26 @@ class Constants():
     HELP = """El programa debe generar <numero> procesos hijos, y cada proceso calculará la suma de todos los números enteros pares entre 0 y su número de PID.
     PID – PPID : <suma_pares>
     -n: Es la cantidad de procesos a generar.
-    -h: Muestra una ayuda de como funciona el codigo.
+    -hh: Muestra una ayuda de como funciona el codigo.
     -v: Habilita el modo verboso de la aplicación."""
+    ERROR = "Valores ingresados incorrectos. Ingresa -hh para mas información."
 
 class Main():
 
     def main(self):
         args = self.ArgumentsConfig()
-        mode_verbose = False
+        cons = Constants()
 
         if (args.helps):
-            cons = Constants()
             print(cons.HELP)
             return
 
-        elif (args.verbose):
-            mode_verbose = True
-
         elif (args.number):
+            mode_verbose = args.verbose
             self.Fork(loop = args.number, verbose = mode_verbose)
         
         else:
-            print("Valores ingresados incorrectos. Ingresa -h para mas información.")
+            print(cons.ERROR)
 
 
     def ArgumentsConfig(self):
@@ -47,8 +45,8 @@ class Main():
 
         # Ingreso de argumentos
         parser.add_argument("-n", "--number", type=int, help="Cantidad de procesos a generar.")
-        parser.add_argument("-i", "--helps", type=str, help="Ayuda de como utilizar este archivo python.")
-        parser.add_argument("-v", "--verbose", type=str, help="Modo detallado.")
+        parser.add_argument("-hh", "--helps", action="store_true", help="Ayuda de como utilizar este archivo python.")
+        parser.add_argument("-v", "--verbose", action="store_true", help="Modo detallado.")
 
         # Obtener lista de argumentos en args.
         return parser.parse_args()
@@ -71,9 +69,7 @@ class Main():
 
                 os._exit(0)
 
-        wpid = os.wait(status)
-        while (wpid > 0):
-            pass
+        pid, status = os.waitpid(child_pid, 0)
 
         #codigo del padre, todos los hijos finalizaron!
         print("Todos los procesos hijos finalizaron. Cerrando...")
@@ -102,4 +98,4 @@ main = Main()
 main.main()
 
 #Bibliografia:
-# Como hacer que el padre espere a que los hijos terminen sus procesos para finalizar: https://stackoverflow.com/questions/19461744/how-to-make-parent-wait-for-all-child-processes-to-finish
+# Como hacer que el padre espere a que los hijos terminen sus procesos para finalizar: https://stackoverflow.com/questions/10684180/python-checking-if-a-fork-process-is-finished
