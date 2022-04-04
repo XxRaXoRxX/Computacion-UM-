@@ -6,7 +6,10 @@ import argparse as arg
 import datetime as date
 import os
 
-# Funcion utilizado para realizar el comando y almacenar el log y commando dentro de archivos. 
+from subprocess import Popen, PIPE, STDOUT
+
+# Funcion utilizado para realizar el comando y almacenar el log y commando dentro de archivos.
+# Función realizada SIN el Subprocess Popen
 def UseCommands(command, commandArchive, logArchive):
     # Creación de archivo temporal para verificar si el error se genera o no.
     error = "ErrorLogBetaTesting.txt"
@@ -24,6 +27,27 @@ def UseCommands(command, commandArchive, logArchive):
     archive.close()
     os.system(f"rm ./{error}")
 
+# Funcion utilizado para realizar el comando y almacenar el log y commando dentro de archivos.
+# Función realizada CON el Subprocess Popen
+def UseCommandsSubprocess(command, commandArchive, logArchive):
+    #Realizo el comando con el Popen, generando un hijo con el proceso de comando, el proceso hijo es p.
+    p = Popen([f"{command}"], shell=True, stdout=PIPE, stderr=PIPE)
+    #Guardo el output y error del popen en dos variables.
+    out, err = p.communicate()
+
+    #El returncode al ser cero significa que no hubo error y guarda lo que devuelve el comando y la fecha en el log.
+    if p.returncode == 0:
+        with open(commandArchive, "w+") as command_file:
+            command_file.write(str(out))
+
+        txt = f"Fecha y Hora: {date.datetime.now()}. Comando: {command} ejecutado correctamente."
+        with open(logArchive, "w+") as error_file:
+            error_file.write(str(txt))
+    #El returncode al ser diferente de 0 es que dio algun tipo de error, entonces hay que guardar el error en el log.
+    else:
+        with open(logArchive, "w+") as error_file:
+            error_file.write(str(err))
+
 # Generas el parser con una descripción
 parser = arg.ArgumentParser(description="Realizar un comando y almacenar comando y log dentro de archivos.")
 
@@ -37,6 +61,6 @@ args = parser.parse_args()
 
 # Verificar si los datos ingresados son correctos.
 if (args.command and args.saveCommand and args.saveLogs):
-    UseCommands(command = args.command, commandArchive = args.saveCommand, logArchive = args.saveLogs)
+    UseCommandsSubprocess(command = args.command, commandArchive = args.saveCommand, logArchive = args.saveLogs)
 else:
     print("Ingreso de parametros incorrecto.")
