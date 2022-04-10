@@ -5,6 +5,7 @@
 # El proceso padre debe esperar a que los hijos terminen, luego de lo cual deberá leer el contenido del archivo y mostrarlo por pantalla.
 # La opción -h mostrará ayuda. La opción -v activará el modo verboso, en el que se mostrará antes de escribir cada letra en el archivo: Proceso <PID> escribiendo letra 'X'.
 
+from distutils import archive_util
 import time
 import os
 import argparse as arg
@@ -67,9 +68,9 @@ class Main():
                 -file: Ubicación del archivo.
                 -verbose: Booleano para identificar si estoy en modo verboso o no.
         """
-        alphabet = {"A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "LL", "N", "Ñ", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z"}
+        alphabet =  ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "LL", "N", "Ñ", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z"]
 
-        archive = open(file, "w")
+        archive = open(file, "a")
 
         for i in range(loop):
             child_pid = os.fork()
@@ -82,6 +83,7 @@ class Main():
         # Esperar hasta que el ultimo proceso hijo finalice.
         pid, status = os.waitpid(child_pid, 0)
 
+        archive.write("\n")
         archive.close()
 
         #codigo del padre, todos los hijos finalizaron!
@@ -109,7 +111,7 @@ class Main():
 
             #Guardar archivo en el disco.
             file.flush()
-            os.fsync()
+            os.fsync(file)
 
             #Esperar un segundo.
             time.sleep(1)
