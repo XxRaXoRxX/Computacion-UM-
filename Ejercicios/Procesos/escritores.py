@@ -68,7 +68,7 @@ class Main():
                 -file: Ubicación del archivo.
                 -verbose: Booleano para identificar si estoy en modo verboso o no.
         """
-        alphabet =  ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "LL", "N", "Ñ", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z"]
+        alphabet =  ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "Ñ", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z"]
 
         archive = open(file, "a")
 
