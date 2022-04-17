@@ -97,20 +97,29 @@ class Main():
         pid, status = os.waitpid(child_pid, 0)
 
         # Leer los textos de los hijos y escribirlo en el archivo
-        archive = open(file, "w")
+        #archive = open(file, "w")
+        #for i in range(len(lines)):
+        #    read = os.read(pipe_read[i], 100)
+        #
+        #    #Quitar el /n en la primera escritura
+        #    if (i == 0):
+        #        read = read.decode()
+        #        read = read[2:]
+        #        archive.write(read)
+        #        continue
+        #
+        #    archive.write(read.decode())
+        #print(archive.read())
+
+        # Se cierra el archivo al editarlo arriba
+        # archive.close()
+
+        #Printea en pantalla el texto invertido
         for i in range(len(lines)):
             read = os.read(pipe_read[i], 100)
-
-            #Quitar el /n en la primera escritura
-            if (i == 0):
-                read = read.decode()
-                read = read[2:]
-                archive.write(read)
-                continue
-
-            archive.write(read.decode())
-
-        archive.close()
+            read = read.decode()
+            read = read[2:]
+            print(read)
 
         for read in pipe_read:
             os.close(read)
