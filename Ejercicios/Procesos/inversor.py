@@ -115,6 +115,8 @@ class Main():
         # archive.close()
 
         #Printea en pantalla el texto invertido
+        print("Archivo invertido:")
+        print("")
         for i in range(len(lines)):
             read = os.read(pipe_read[i], 100)
             read = read.decode()

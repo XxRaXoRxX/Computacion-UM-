@@ -1,4 +1,5 @@
-DNUM ALOH
-lat euq    
-ovihcra nu se etse    
-.olpmeje ed        
+HOLA MUNDO
+    que tal
+    este es un archivo
+    de ejemplo.
+    
