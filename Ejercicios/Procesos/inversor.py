@@ -76,14 +76,19 @@ class Main():
         os.write(w_send, b"archive.read()")
         archive.close()
 
-        i = -1
         for i in range(len(lines)):
             # Genero los hijos
             child_pid = os.fork()
             if (child_pid == 0):
-                i += 1
+
+                #leer el archivo y reenvio al pipe.
+                read = os.fdopen(r_send)
+                text = read.read()
+                os.write(w_send, text)
+                text = text.decode()
+
                 #codigo del hijo
-                self.Inversor(read = os.fdopen(r_send), write = os.fdopen(w_get), child = i)
+                self.Inversor(text = text[i], write = os.fdopen(w_get))
 
                 os._exit(0)
 
@@ -100,28 +105,18 @@ class Main():
         #codigo del padre, todos los hijos finalizaron!
         print("Todos los procesos hijos finalizaron. Cerrando...")
 
-
-    def Inversor(self, read, write, child):
+    def Inversor(self, text, write):
         """Realiza la suma de pares para cada proceso.
 
         args:
-                -read: Lectura del pipe
+                -text: Texto a editar
                 -write: Escritura del pipe
-                -child: ID del hijo creado.
         """
 
-        #Leer el archivo en el pipe
-        text = read.readlines()
         #Decodear los bites.
         text = text.decode()
-        #Obtengo la parte del hijo.
-        text = text[child]
-        #Cerrar el read del pipe
-        read.close()
-
         #Invertir letras.
         text = text[::-1]
-
         #Enviar texto al padre.
         write.write(text)
         #Cerrar el write del pipe
