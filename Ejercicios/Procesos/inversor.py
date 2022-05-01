@@ -72,25 +72,27 @@ class Main():
         r_send, w_send = os.pipe()
         r_get, w_get = os.pipe()
 
-        #Escribo el texto para que lo tomen los hijos.
-        os.write(w_send, b"archive.read()")
-        archive.close()
-
         for i in range(len(lines)):
+            #Envio linea de texto al hijo.
+            os.write(w_send, lines[i].encode())
+
             # Genero los hijos
             child_pid = os.fork()
             if (child_pid == 0):
 
-                #leer el archivo y reenvio al pipe.
-                read = os.fdopen(r_send)
-                text = read.read()
-                os.write(w_send, text)
-                text = text.decode()
+                #Cerrando pipes innecesarios.
+                os.close(w_send)
+                os.close(r_get)
 
                 #codigo del hijo
-                self.Inversor(text = text[i], write = os.fdopen(w_get))
+                self.Inversor(read = r_send, write = w_get)
 
                 os._exit(0)
+        
+        os.close(w_send)
+
+        #Cierro el archivo con texto a editar.
+        archive.close()
 
         # Esperar hasta que el ultimo proceso hijo finalice.
         pid, status = os.waitpid(child_pid, 0)
@@ -98,29 +100,39 @@ class Main():
         #Printea en pantalla el texto invertido
         print("Archivo invertido:")
         print("")
-        print(os.read(r_get))
+        print(os.read(r_get, 100).decode())
         os.close(r_get)
         os.close(w_get)
 
         #codigo del padre, todos los hijos finalizaron!
         print("Todos los procesos hijos finalizaron. Cerrando...")
 
-    def Inversor(self, text, write):
+    def Inversor(self, read, write):
         """Realiza la suma de pares para cada proceso.
 
         args:
-                -text: Texto a editar
+                -read: Lectura del pipe
                 -write: Escritura del pipe
         """
 
+        #Obtener lectura del pipe
+        text = os.read(read, 100)
         #Decodear los bites.
         text = text.decode()
+
+        #Quito el /n del texto
+        text = text[:-2]
         #Invertir letras.
         text = text[::-1]
+        #Agrego un /n al final texto
+        text += "\n"
+
         #Enviar texto al padre.
-        write.write(text)
+        os.write(write, text.encode())
         #Cerrar el write del pipe
-        write.close()
+        os.close(write)
+        #Cerrando el read del pipe
+        os.close(read)
         
 #Arrancar ejemplo
 main = Main()
