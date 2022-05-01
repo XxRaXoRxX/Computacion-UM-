@@ -68,93 +68,64 @@ class Main():
             print("El archivo esta vacio. Cancelando...")
             return
 
-        pipe_read = []
-        pipe_write = []
+        #Creación de Pipes.
+        r_send, w_send = os.pipe()
+        r_get, w_get = os.pipe()
 
+        #Escribo el texto para que lo tomen los hijos.
+        os.write(w_send, b"archive.read()")
+        archive.close()
+
+        i = -1
         for i in range(len(lines)):
-            
-            #Creación de pipes
-            r, w = os.pipe()
-            pipe_write.append(w)
-            pipe_read.append(r)
-
             # Genero los hijos
             child_pid = os.fork()
             if (child_pid == 0):
+                i += 1
                 #codigo del hijo
-                self.Inversor(read = pipe_read[i], write = pipe_write[i])
+                self.Inversor(read = os.fdopen(r_send), write = os.fdopen(w_get), child = i)
 
                 os._exit(0)
-
-        # Codigo del padre
-        # Escribir los textos a los hijos
-        for i in range(len(lines)):
-            os.write(pipe_write[i], str.encode(lines[i]))
-
-        archive.close()
 
         # Esperar hasta que el ultimo proceso hijo finalice.
         pid, status = os.waitpid(child_pid, 0)
 
-        # Leer los textos de los hijos y escribirlo en el archivo
-        #archive = open(file, "w")
-        #for i in range(len(lines)):
-        #    read = os.read(pipe_read[i], 100)
-        #
-        #    #Quitar el /n en la primera escritura
-        #    if (i == 0):
-        #        read = read.decode()
-        #        read = read[2:]
-        #        archive.write(read)
-        #        continue
-        #
-        #    archive.write(read.decode())
-        #print(archive.read())
-
-        # Se cierra el archivo al editarlo arriba
-        # archive.close()
-
         #Printea en pantalla el texto invertido
         print("Archivo invertido:")
         print("")
-        for i in range(len(lines)):
-            read = os.read(pipe_read[i], 100)
-            read = read.decode()
-            read = read[2:]
-            print(read)
-
-        for read in pipe_read:
-            os.close(read)
-
-        for write in pipe_write:
-            os.close(write)
+        print(os.read(r_get))
+        os.close(r_get)
+        os.close(w_get)
 
         #codigo del padre, todos los hijos finalizaron!
         print("Todos los procesos hijos finalizaron. Cerrando...")
 
 
-    def Inversor(self, read, write):
+    def Inversor(self, read, write, child):
         """Realiza la suma de pares para cada proceso.
 
         args:
                 -read: Lectura del pipe
                 -write: Escritura del pipe
+                -child: ID del hijo creado.
         """
 
         #Leer el archivo en el pipe
-        text = os.read(read, 100)
-        #Cerrar el read del pipe
-        os.close(read)
-
-        #Leer el archivo de byte.
+        text = read.readlines()
+        #Decodear los bites.
         text = text.decode()
+        #Obtengo la parte del hijo.
+        text = text[child]
+        #Cerrar el read del pipe
+        read.close()
+
         #Invertir letras.
         text = text[::-1]
 
         #Enviar texto al padre.
-        os.write(write, str.encode(text))
+        write.write(text)
         #Cerrar el write del pipe
-        os.close(write)
+        write.close()
         
 #Arrancar ejemplo
 main = Main()
