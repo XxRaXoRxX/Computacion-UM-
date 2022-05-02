@@ -1,6 +1,6 @@
 # Sincronización y nmap.
 # Etapa 1:
-# -  El programa deberá crear un segmento de memoria compartida anónima, y generar dos hijos: H1 y H2
+# - El programa deberá crear un segmento de memoria compartida anónima, y generar dos hijos: H1 y H2
 # - El H1 leerá desde el stdin línea por línea lo que ingrese el usuario.
 # - Cada vez que el usuario ingrese una línea, H1 la almacenará en el segmento de memoria compartida, y enviará la señal USR1 al proceso padre.
 # - El proceso padre, en el momento en que reciba la señal USR1 deberá mostrar por pantalla el contenido de la línea ingresada por el H1 en la memoria compartida, 
@@ -11,14 +11,19 @@
 # - El padre, al recibir la señal USR2 la enviará al H2, que al recibirla terminará también.
 # - El padre esperará a que ambos hijos hayan terminado, y terminará también.
 
-import os
+import os, sys, signal
 import argparse as arg
-from nmap import nmap
+from mmap import mmap
 
 class Constants():
     ERROR = "Valores ingresados incorrectos. Ingresa -h para mas información."
+    BYTE = b"\x00"
 
 class Main():
+
+    memory = ""
+    pidChildList = []
+    archive = ""
 
     def main(self):
         args = self.ArgumentsConfig()
@@ -57,55 +62,140 @@ class Main():
 
         # Creado un archivo en caso de no existir, sino lo cargo
         if os.path.exists(file):
-            archive = open(file, "r")
+            self.archive = open(file, "w")
         else:
             print("El archivo ingresado no existe. Cerrando...")
             return
 
-        lines = archive.readlines()
-
         #Creación del mapeo de memoria.
-        nmap.nmap(-1, 0)
+        self.memory = mmap(-1, 100)
+        
+        #Creación de señales en el padre
+        signal.signal(signal.SIGUSR1, self.FatherSignalUSR1)
+        signal.signal(signal.SIGUSR2, self.FatherSignalUSR2)
 
         # Genero ambos hijos.
         for i in range(2):
-
-            if not os.fork():
-                pass
+        
+            pid = os.fork()
+            if (pid == 0):
+                if (i == 0):
+                    self.Child1()
+                    exit(0)
+                else:
+                    self.Child2()
+                    return
+            else:
+                self.pidChildList.append(pid)
 
         # Esperar hasta que el ultimo proceso hijo finalice.
-        pid, status = os.waitpid(child_pid, 0)
+        #print(self.pidChildList)
+        for i in range(2):
+            os.wait()
 
         #codigo del padre, todos los hijos finalizaron!
         print("Todos los procesos hijos finalizaron. Cerrando...")
 
-    def Inversor(self, read, write):
-        """Realiza la suma de pares para cada proceso.
+    def FatherSignalUSR1(self, s, f):
+        """Señal del Padre para recibir lo del H1 (Child 1) los datos ingresados por el usuario.
 
         args:
-                -read: Lectura del pipe
-                -write: Escritura del pipe
+                -s: Número de señal.
+                -f: FRAME. Puntero donde el proceso debe volver en stack al finalizar esta función.
+        """
+        
+        # Printeo en pantalla lo enviado por el Child 1 y le mando una señal al Child 2
+        self.memory.seek(0)
+        print("Padre recibiendo texto:", self.memory.read().decode())
+        os.kill(self.pidChildList[1], signal.SIGUSR1)
+
+    def FatherSignalUSR2(self, s, f):
+        """Señal del Padre para recibir lo del H1 (Child1) cuando el usuario escribe un bye.
+
+        args:
+                -s: Número de señal.
+                -f: FRAME. Puntero donde el proceso debe volver en stack al finalizar esta función.
         """
 
-        #Obtener lectura del pipe
-        text = os.read(read, 100)
-        #Decodear los bites.
-        text = text.decode()
+        print("Child 1 Finalizando...")
+        # Enviando al child 2 que se suicide.
+        os.kill(self.pidChildList[1], signal.SIGUSR2)
 
-        #Quito el /n del texto
-        text = text[:-2]
-        #Invertir letras.
-        text = text[::-1]
-        #Agrego un /n al final texto
-        text += "\n"
 
-        #Enviar texto al padre.
-        os.write(write, text.encode())
-        #Cerrar el write del pipe
-        os.close(write)
-        #Cerrando el read del pipe
-        os.close(read)
+    def Child1(self):
+        """Proceso Hijo 1, que se encarga de obtener lo escrito por el usuario en la terminal.
+
+        args:
+                -memory: Memoria virtual
+        """
+        for line in sys.stdin:
+
+            #Quito el \n
+            line = line[:-1]
+
+            #Escritura "bye" cierra el bucle
+            if (line == "bye" or line == "Bye" or line == "BYE"):
+                print("Saliendo...")
+                os.kill(os.getppid(), signal.SIGUSR2)
+                return
+
+            # Muevo el puntero a 0 para volver a escribir desde el inicio.
+            self.memory.seek(0)
+            # Elimino todo el contenido de la memoria dejando bites vacios.
+            cons = Constants()
+            self.memory[0:100] = cons.BYTE*100
+            # Escribo la linea en memoria.
+            self.memory.write(line.encode())
+            os.kill(os.getppid(), signal.SIGUSR1)
+
+    def Child2(self):
+        """Proceso Hijo 2, que obtiene lo que escribio el usuario y lo transforma en mayuscula, guardandolo en un archivo.
+
+        args:
+                -archive: Archivo donde pegar lo escrito por el usuario en mayúscula.
+        """
+
+        # Cambio la señal SIGUSR1 a una función.
+        signal.signal(signal.SIGUSR1, self.Child2SignalUSR1)
+        signal.signal(signal.SIGUSR2, self.Child2SignalUSR2)
         
+        #Me quedo esperando a que envien una señal.
+        while True:
+            signal.pause()
+
+    def Child2SignalUSR1(self, s, f):
+        """Señal del Hijo 2 para recibir del Padre los datos ingresados por el usuario.
+
+        args:
+                -s: Número de señal.
+                -f: FRAME. Puntero donde el proceso debe volver en stack al finalizar esta función.
+        """
+
+        # Leo en texto en memoria y lo almaceno en el archivo en mayúscula
+        self.memory.seek(0)
+        text = self.memory.readline()
+        text = text.decode().upper()
+
+        # Quitar los string "\00" al decodear memoria vacia. 
+        text = text.strip("\00")
+
+        print("Escribiendo:", text, "en archivo...")
+
+        # Agregarle un "\n" al final del texto
+        text = text + "\n"
+        self.archive.write(text)
+
+    def Child2SignalUSR2(self, s, f):
+        """Señal del Hijo 2 para recibir del Padre cuando se van a cerrar los procesos.
+
+        args:
+                -s: Número de señal.
+                -f: FRAME. Puntero donde el proceso debe volver en stack al finalizar esta función.
+        """
+        
+        print("Child 2 Finalizando...")
+        exit(0)
+
 #Arrancar ejemplo
 main = Main()
 main.main()
