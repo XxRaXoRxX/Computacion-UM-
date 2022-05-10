@@ -36,16 +36,23 @@ class Main():
         child1_conn, child2_conn = mp.Pipe()
 
         #Genero el segundo hijo
-        child2 = mp.Process(target = child2, name = "Encripter", args = (child2_conn,))
+        child2 = mp.Process(target = self.Child2, name = "Encripter", args = (child2_conn,))
         #Genero el primer hijo
-        child1 = mp.Process(target = child1, name = "Terminal Reader", args = (child1_conn, child2.pid, fn))
+        child1 = mp.Process(target = self.Child1, name = "Terminal Reader", args = (child1_conn, child2.pid, fn))
 
+        #Inicio los hijos
+        child1.run()
+        child2.run()
+
+        #Esperando a que los hijos se cierren para poder cerrarse.
         while True:
-            if not (child1.is_alive()):
+            print(child1.is_alive())
+            print(child2.is_alive())
+            if (not child1.is_alive() and not child2.is_alive()):
                 child1.join()
-
-            if not (child2.is_alive()):
                 child2.join()
+                break;
+                
 
 
     def Child1(self, pipe, child2_PID, fn):
@@ -64,16 +71,18 @@ class Main():
         #Al escribir en la terminal lo mando al pipe.
         for str in sys.stdin:
             if (str[:-1] == "stop"):
+                #Envio una señal al child2 para que se cierre.
                 os.kill(child2_PID, signal.SIGUSR1)
                 exit(0)
 
             #Envio lo escrito al pipe.
             pipe.send(str)
 
-    def Child2(self, pipe):
+    def Child2(self, pipe, child1_PID):
         """Realiza el encriptado rot13.
         args:
-                -pipe: El pipe del hijo."""
+                -pipe: El pipe del hijo.
+                -child1_PID: El número del pid del segundo hijo"""
 
         #Genero una señal para cerrar el hijo 2 cuando se escriba "stop".
         signal.signal(signal.SIGUSR1, self.Child2_Exit)
@@ -86,11 +95,14 @@ class Main():
             text = encode(text, "rot_13")
 
             #Lo almaceno en queue.
-            q.put()
+            q.put(text)
+
+            #Aviso por señal al hijo 1.
+            os.kill(child1_PID, signal.SIGUSR1)
             
     def Child1_Print(self, s, f):
         """Printar en pantalla el archivo encriptado."""
-        pass
+        print(q.get())
 
     def Child2_Exit(self, s, f):
         """Cerrar el programa hijo 2."""
