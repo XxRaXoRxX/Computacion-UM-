@@ -7,7 +7,7 @@
 import os, sys, signal
 import argparse as arg
 import multiprocessing as mp
-from codecs import encode #encode("str", "rot_13") 
+from codecs import encode
 
 class Constants():
     STOP = "Para parar bucle escribir |stop|"
