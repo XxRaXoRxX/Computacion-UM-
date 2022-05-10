@@ -52,8 +52,6 @@ class Main():
                 child2.join()
                 print(cons.FATHER_STOP)
                 break
-                
-
 
     def Child1(self, pipe, fn, cons):
         """Lee la terminal y manda todo esos datos al pipe.
