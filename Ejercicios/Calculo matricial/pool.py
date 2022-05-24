@@ -69,7 +69,7 @@ class Main():
             matrix.append(split)
 
         #Printeo en pantalla
-        matrix = self.PrintMatrix(calc = args.calc, matrix = matrix, process = process, cons = cons)
+        matrix = self.SplitFunction(calc = args.calc, matrix = matrix, process = process, cons = cons)
 
         if (matrix == None):
             return
@@ -133,7 +133,7 @@ class Main():
         args:
                 -value: Valor a realizar el calculo."""
                 
-        return math.sqr(value)
+        return math.sqrt(value)
 
     def Pot(self, value):
         """Calcula la potencia del elemento elevado a si mismo.
@@ -157,3 +157,6 @@ main.main()
 
 #Bibliografia:
 # Transformar una lista completa de str a int: https://stackoverflow.com/questions/7368789/convert-all-strings-in-a-list-to-int
+
+#Codigo de test:
+# python3 pool.py -f "matriz.txt" -p 2 -c raiz|pot|log
