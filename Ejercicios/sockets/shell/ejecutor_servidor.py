@@ -3,7 +3,7 @@
 # -c p|t: Modo de concurrencia. Si la opción es "-c p" el servidor generará un nuevo proceso al recibir conexiones nuevas.
 # Si la opción es "-c t" generará hilos nuevos.
 
-import click, socketserver, subprocess
+import click, socketserver, subprocess, pickle
 import constants as cons
 
 class Main():
@@ -18,27 +18,33 @@ class Main():
             # Obtener los datos.
             while True:
                 data = self.request.recv(1024)
-                data = data.decode()
-                new_data = data.split()
+                decode = pickle.loads(data)
+
+                # Desconectar al cliente
+                if (decode == "exit"):
+                    encode = pickle.dumps(cons.DISCONNECT)
+                    self.request.send(encode)
+                    break
 
                 # Comunicar datos.
-                p = subprocess.Popen(new_data, stdout = subprocess.PIPE,
-                                        stderr = subprocess.PIPE,
-                                        shell = True)
+                p = subprocess.Popen([f"{decode}"], stdout = subprocess.PIPE,
+                                    stderr = subprocess.PIPE,
+                                    shell = True,
+                                    universal_newlines = True)
                 out, err = p.communicate()
 
                 # Enviar datos al cliente.
                 if (out != ""):
-                    send = cons.OK + cons.LIST + out.decode()
-                    send = send.encode(cons.ENCODE)
-                    self.request.send(send)
+                    send = cons.OK + out
+                    encode = pickle.dumps(send)
+                    self.request.send(encode)
                 elif (err != ""):
-                    send = cons.ERROR + cons.LIST + err.decode()
-                    send = send.encode(cons.ENCODE)
+                    send = cons.ERROR + err
+                    send = pickle.dumps(send)
                     self.request.send(send)
                 else:
-                    except_error = cons.ERROR + cons.LIST + cons.ERROR_SHELL + data
-                    except_error = except_error.encode(cons.ENCODE)
+                    except_error = cons.ERROR + cons.ERROR_SHELL + data
+                    except_error = pickle.dumps(except_error)
                     self.request.send(except_error)
 
     # Clase generador de hilos y procesos.
@@ -64,20 +70,24 @@ class Main():
     def Server(self):
         address = (cons.LOCALHOST, int(self.__port))
 
+        # Abre hilos o aplicaciones segun commando -c
         if (self.__conc == "t"):
             server = self.ForkingServer(address, self.RequestHandler)
         else:
             server = self.ThreadedServer(address, self.RequestHandler)
+
+        # Liberar puertos al desconectarse.
+        server.allow_reuse_address = True
 
         print(cons.SRV_WORKING, cons.LOCALHOST, self.__port)
         server.serve_forever()
 
 # Obtener parametros ingresado por el usuario.
 @click.command()
-@click.option("-p", help = "Server port")
-@click.option("-c", help = "Concurrency mode: t(threading) or p(process)")
-def StartProgram(p, c):
-    main = Main(port = p, conc = c)
+@click.option("-p", "--port", help = "Server port")
+@click.option("-c", "--concurrency", help = "Concurrency mode: t(threading) or p(process)")
+def StartProgram(port, concurrency):
+    main = Main(port = port, conc = concurrency)
     main.Main()
 
 #Arrancar servidor

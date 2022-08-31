@@ -8,9 +8,8 @@ ENCODE = "utf-8"
 LOCALHOST = "127.0.0.1"
 ARGUMENT_ERROR = "> argumento ingresado incorrecto:"
 HELP = "> ejecutar con --help para mas información."
-ERROR = "ERROR"
-OK = "OK"
-LIST = "®"
+ERROR = "ERROR\n"
+OK = "OK\n"
 SRV_WORKING = "Servidor funcionando correctamente en:"
 
 ### ---- Cliente ----

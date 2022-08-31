@@ -7,7 +7,7 @@
 # -h <host>: dirección IP o nombre del servidor al que conectarse.
 # -p <port>: número de puerto del servidor.
 
-import click, socket
+import click, socket, pickle
 import constants as cons
 
 class Main():
@@ -35,27 +35,27 @@ class Main():
 
         print(cons.EXIT) # Printear como salir del shell.
         while True:
+            # Pregunta al usuario
             answer = input(cons.INSERT)
-            # Si ingresa exit se sale del shell.
-            if (answer == "exit"):
-                print(cons.DISCONNECT)
-                s.close()
-                return
 
-            s.send(answer.encode(cons.ENCODE))
+            # Envio de datos al servidor
+            encode = pickle.dumps(answer)
+            s.send(encode)
             recv = s.recv(1024)
-            recv = recv.decode()
-            recv = recv.split(cons.LIST)
-            print(recv[0])
-            print(recv[1])
+            decode = pickle.loads(recv)
+            print(decode)
+
+            # Desconectarse cuando recibe dato desconexión
+            if (decode == cons.DISCONNECT):
+                break
             
 
 # Obtener parametros ingresado por el usuario.
 @click.command()
-@click.option("-h", help = "Server host")
-@click.option("-p", help = "Server port")
-def StartProgram(h, p):
-    main = Main(host = h, port = p)
+@click.option("-h", "--host", help = "Server host")
+@click.option("-p", "--port", help = "Server port")
+def StartProgram(host, port):
+    main = Main(host = host, port = port)
     main.Main()
 
 #Arrancar cliente
