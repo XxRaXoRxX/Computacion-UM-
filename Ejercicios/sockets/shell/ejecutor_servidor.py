@@ -43,7 +43,7 @@ class Main():
                     send = pickle.dumps(send)
                     self.request.send(send)
                 else:
-                    except_error = cons.ERROR + cons.ERROR_SHELL + data
+                    except_error = cons.ERROR + cons.ERROR_SHELL + decode
                     except_error = pickle.dumps(except_error)
                     self.request.send(except_error)
 
