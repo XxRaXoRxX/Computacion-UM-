@@ -17,7 +17,7 @@ class Main():
         def handle(self):
             # Obtener los datos.
             while True:
-                data = self.request.recv(1024)
+                data = self.request.recv(1024) # Se rompe al mandar muchos datos, la solución sería agregar mayor rango de bytes recibidos o mandar datos por partes.
                 decode = pickle.loads(data)
 
                 # Desconectar al cliente

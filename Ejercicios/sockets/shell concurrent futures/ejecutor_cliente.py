@@ -17,6 +17,7 @@ class Main():
         self.__port = port
 
     def Main(self):
+
         if (self.__host != ""):
             if (self.__port != ""):
                 self.Client()
