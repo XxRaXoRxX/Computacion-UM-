@@ -65,26 +65,25 @@ class Main():
         address = (cons.LOCALHOST, int(self.__port))
 
         # Abre hilos o aplicaciones segun commando -c
-        if (self.__conc == "t"):
+        if (self.__conc == "p"):
             #Creación del pool por procesos
-            pool = ProcessPoolExecutor(max_workers = 10)
+            executor = ProcessPoolExecutor(max_workers = 10)
         else:
             #Creación del pool por hilos
-            pool = ThreadPoolExecutor(max_workers = 10)
+            executor = ThreadPoolExecutor(max_workers = 10)
 
-        with pool as executor:
-            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-                #... tenemos un pool "executor", y un socket que se llama "s"
-                s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-                s.bind(address)
-                s.listen(1)
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+            #... tenemos un pool "executor", y un socket que se llama "s"
+            s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+            s.bind(address)
+            s.listen(1)
 
-                print(cons.SRV_WORKING, cons.LOCALHOST, self.__port)
-                
-                while True:
-                    s2, addr = s.accept()
-                    result = executor.submit(self.handle, s2, addr)
-                    #s2.close()
+            print(cons.SRV_WORKING, cons.LOCALHOST, self.__port)
+            
+            while True:
+                s2, addr = s.accept()
+                result = executor.submit(self.handle, s2, addr)
+                #s2.close()
 
 # Obtener parametros ingresado por el usuario.
 @click.command()
