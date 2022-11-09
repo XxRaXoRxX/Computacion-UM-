@@ -15,12 +15,14 @@ def Root(value):
     args:
             -value: Valor a realizar el calculo."""
 
-    newMatrix = []
+    #newMatrix = []
+    #for v in value:
+    #    newMatrix.append(math.sqrt(v))
+    #return newMatrix
 
-    for v in value:
-        newMatrix.append(math.sqrt(v))
+    new_matrix = map(math.sqrt, value)
 
-    return newMatrix
+    return list(new_matrix)
 
 @app.task
 def Pot(value):
@@ -29,12 +31,16 @@ def Pot(value):
     args:
             -value: Valor a realizar el calculo."""
 
-    newMatrix = []
+    #newMatrix = []
+    #for v in value:
+    #    newMatrix.append(math.pow(v, v))
+    #return newMatrix
 
-    for v in value:
-        newMatrix.append(math.pow(v, v))
+    # Genera una lista con los valores de la potencia, en este caso 2.
+    pot_list = [2]*len(value)
+    new_matrix = map(math.pow, value, pot_list)
 
-    return newMatrix
+    return list(new_matrix)
 
 @app.task
 def Log(value):
@@ -43,15 +49,18 @@ def Log(value):
     args:
             -value: Valor a realizar el calculo."""
 
-    newMatrix = []
+    #newMatrix = []
+    #for v in value:
+    #    newMatrix.append(math.log(v))
+    #return newMatrix
 
-    for v in value:
-        newMatrix.append(math.log(v))
+    new_matrix = map(math.log, value)
 
-    return newMatrix
+    return list(new_matrix)
 
-if __name__ == "__main__":
-    app.start()
+# Esto no es necesario, en la versión actual de celery se startea automatico.
+#if __name__ == "__main__":
+#    app.start()
 
 # Para ejecutar Celery:
 # celery -A tasks worker --loglevel=INFO -c4
